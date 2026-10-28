@@ -1,0 +1,17 @@
+[project]
+name = "agentic-sdlc-demo"
+version = "0.1.0"
+description = "Pilot project for SDLC Pilot: a small expense tracking API"
+requires-python = ">=3.11"
+dependencies = ["fastapi>=0.110"]
+
+[dependency-groups]
+dev = ["pytest>=8.0", "httpx>=0.27", "ruff>=0.5"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = [
+    "perf: performance NFR tests; skipped by default, run with `uv run pytest -m perf`",
+]
+addopts = "-m 'not perf'"

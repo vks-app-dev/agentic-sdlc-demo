@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sdlc:*)",
+      "Bash(git worktree:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(uv sync:*)",
+      "Bash(uv run pytest:*)",
+      "Bash(uv run ruff check .:*)",
+      "Bash(uv run --with uvicorn uvicorn app.main:app --port 8000:*)",
+      "Bash(gitleaks detect --no-banner --redact:*)"
+    ]
+  }
+}

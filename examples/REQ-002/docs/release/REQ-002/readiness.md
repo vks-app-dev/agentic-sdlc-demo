@@ -1,0 +1,50 @@
+Verdict: PASS
+
+# Release readiness: REQ-002 Upgrade FastAPI to the latest version
+
+<!-- Written by the rel-readiness-checker. Every row needs evidence (a file, a command and its output, a link).
+The release manager reads this at the Release gate. -->
+
+Checked against HEAD `9d9eca5` on `sdlc/REQ-002`. Date of check: 2026-10-27. Production was not touched. Re-check of the previous readiness (HEAD `7457015`, verdict FAIL). Gaps accepted by the reviewer on 2026-10-27 17:50 are marked ACCEPTED. The release docs are now committed (`git ls-files docs/release/REQ-002` lists readiness, release-notes, rollback, smoke-staging, verification; `git status --short` shows only `M specs/REQ-002.md`).
+
+| # | Check | Evidence | Result |
+| --- | --- | --- | --- |
+| 1 | QA signed off; no open release blockers; non-blocking defects listed | docs/qa/REQ-002/summary.md line 3 "Exit criteria **NOT met**"; line 13 performance PARTIAL; line 28 "Every test report is PASS: **no**"; line 40 sign-off by the reviewer 2026-10-27 16:43. docs/qa/REQ-002/performance.md line 15: GET /health "NOT RUN", no NFR targets in specs/REQ-002.md. No open blockers: docs/qa/REQ-002/defects.md line 7 "No defects recorded". Traceability: docs/rtm/REQ-002.md line 3 reports "0/0 acceptance criteria have tests" while summary line 30 says "yes"; the AC-to-check mapping is in docs/dev/REQ-002/verification.md lines 9-18 (AC1 to AC7, all PASS). | ACCEPTED by the reviewer (decision 2026-10-27 17:50): QA exit criteria not met (performance not run). The RTM 0/0 mismatch is included in that acceptance; see open items. |
+| 2 | Pull request approved by a person and CI green; branch not behind the base | `git rev-list --count HEAD..main` = `0` (branch not behind main). PR #2 is a draft (sdlc.config.yaml line 21 `draft_prs: true`; task brief). CI is not configured: sdlc.config.yaml line 17 `ci: null`, line 42 `cicd: enabled: false`. The APPROVE entries in docs/dev/REQ-002/handover.md lines 24-25 are agent code reviews, not a person's approval. `gh pr view 2 ...` was refused in the previous check and was not run in this one (gh is outside this run's allowed commands). | ACCEPTED by the reviewer (decision 2026-10-27 17:50): PR #2 is an unapproved draft. |
+| 3 | Checks passed on the commit being released | docs/dev/REQ-002/checks.md line 3: lint, test, secrets passed at `f1306c6`. Code and dependency paths unchanged to HEAD: `git diff --stat f1306c6 HEAD -- app tests pyproject.toml uv.lock` is empty. Re-run on HEAD in this check: `uv run pytest` "1 passed, 1 warning in 1.00s" (0 skipped); `uv run ruff check .` "All checks passed!"; `gitleaks detect --no-banner --redact` "no leaks found" (32 commits scanned). | ✅ |
+| 4 | Migrations reviewed, reversible, ordered with the code | No migrations: docs/dev/REQ-002/handover.md line 17 "Migrations: none"; docs/release/REQ-002/rollback.md line 15 "none". docs/plan/REQ-002/release-plan.md does not exist (Glob finds no file under docs/plan for REQ-002). | ⚠️ Accepted with note: none exist; the release plan the row cites is missing. |
+| 5 | Feature flags: names, defaults (off unless the plan says otherwise), who turns them on | No flags: docs/release/REQ-002/release-notes.md line 24 "Feature flags: none"; docs/release/REQ-002/verification.md line 21 "No flags". No release plan to confirm defaults. | ⚠️ Accepted with note: no flags exist; the plan is missing. |
+| 6 | Config and secrets for staging and production listed (names only) and present where they must be | See "Config and secrets" below. app/main.py (7 lines) defines only GET /health and reads no environment variable. release-notes.md line 25 "Config: none to change at runtime." | ⚠️ Accepted with note: nothing required; no production environment is defined in config. |
+| 7 | Rollback rehearsed on staging or locally | docs/release/REQ-002/rollback.md line 1 Verdict PASS; line 16 `scripts/staging.sh rollback` to `5e3ff2d`, `/health` 200 in about 3 s; line 18 re-deploy of `7457015` healthy; lines 22-23 data intact, no problems. | ✅ |
+| 8 | Deployed to staging and the post-deployment check passed | docs/release/REQ-002/verification.md line 1 Verdict PASS; line 13 `/health` 200 `{"status":"ok"}`; line 14 `POST /health` 405; line 16 5 of 5 requests 200 at 0.6 to 1.9 ms; line 17 second latency sample PARTIAL (low risk). Smoke: docs/release/REQ-002/smoke-staging.md line 3 "Passed · commit `7457015`". Staging is local at http://127.0.0.1:8200. .staging/app.log lines 7-8 show 200 OK for `/health`; no error lines; lines 10-13 are shutdown lines, so the log does not show the server running now. Staging was not re-probed in this check (curl is outside this run's allowed commands). | ⚠️ Accepted with note: post-deploy check passed; the second latency sample is PARTIAL; the running FastAPI version was inferred from uv.lock, not read from the server; confirm staging is up before the gate. |
+| 9 | Runbook, logs, metrics and alerts in place for what changed | docs/runbooks/ does not exist (Glob finds no files). docs/design/REQ-002/operations.md does not exist (task type runs the development stage only: sdlc.config.yaml lines 78-79). No new behaviour or log events: specs/REQ-002.md line 12 "No user-visible behaviour changes". | ⚠️ Accepted with note: nothing changed in behaviour; no runbook, metrics or alerts were specified. |
+| 10 | Release notes and changelog written; version chosen | docs/release/REQ-002/release-notes.md line 1 "Version: v0.1.0"; line 12 FastAPI 0.162.0 (from 0.161.1), matching uv.lock lines 55-56; line 17 breaking changes "none". CHANGELOG.md lines 7-12: `[v0.1.0] - 2026-10-27`. pyproject.toml line 3 `version = "0.1.0"`, line 6 `fastapi>=0.162.0`. `git tag --list` not re-run in this check (previous check: no tags). | ACCEPTED by the reviewer (decision 2026-10-27 17:50): version v0.1.0 vs v0.1.1 to be confirmed. Note: release-notes.md line 20 "None open" does not mention that performance was NOT RUN. |
+
+## Config and secrets
+
+| Name | Needed for | Set where it must be | Status |
+| --- | --- | --- | --- |
+| (none) | The app reads no environment variables or secrets (app/main.py defines only GET /health). | n/a | Nothing to set. |
+| EXPENSE_DB_PATH | sdlc.config.yaml line 66, `test_env.env`. The app code does not read it. | Test environment only. | Not needed for this release. |
+
+- Staging: no secrets. URL http://127.0.0.1:8200 (sdlc.config.yaml line 84). Deploy: `scripts/staging.sh deploy`. Rollback: `scripts/staging.sh rollback`.
+- Production: sdlc.config.yaml defines no production environment (`environments` lists staging only, lines 80-85) and the production stage is disabled (line 54). Nothing to list for the deployer.
+
+## Open items for the release manager
+
+- ACCEPTED, row 1: QA exit criteria not met because performance was not run (docs/qa/REQ-002/summary.md line 3; performance.md line 15). Accepted by the reviewer, 2026-10-27 17:50. The QA sign-off at 16:43 is recorded with the criteria unmet.
+- ACCEPTED, row 1 (judgment call): docs/rtm/REQ-002.md still reports 0/0 acceptance criteria, while summary.md line 30 says "every must AC has a test: yes". I treated this as part of the accepted QA exit-criteria gap, because the AC-to-check mapping exists in docs/dev/REQ-002/verification.md lines 9-18. The decision names only performance. If the reviewer meant that acceptance to cover performance only, row 1 reverts to FAIL until the RTM is regenerated (`sdlc trace REQ-002` was not run here, since it writes docs/rtm).
+- ACCEPTED, row 2: PR #2 is an unapproved draft (decision 2026-10-27 17:50). No person has approved it, and CI is not configured. The PR state was not re-read in this check.
+- ACCEPTED, row 10: version v0.1.0 vs v0.1.1 needs confirming (decision 2026-10-27 17:50). pyproject.toml and CHANGELOG.md already say v0.1.0 and no tag exists. If v0.1.0 was already released, the next version should be v0.1.1.
+- ⚠️ Row 10 note: release-notes.md line 20 says "None open" and does not list the performance item that was not run. Consider adding it under Known issues before the notes are published.
+- ⚠️ Row 3 note: docs/dev/REQ-002/checks.md is still recorded at `f1306c6`. Code is unchanged to HEAD and the checks were re-run on HEAD in this check.
+- ⚠️ Row 4 and row 5: docs/plan/REQ-002/release-plan.md does not exist. There are no migrations or flags, so nothing to order or set, but the plan should still exist for the production deployer.
+- ⚠️ Row 6: no production environment is defined in sdlc.config.yaml, so there is nothing to check for production.
+- ⚠️ Row 8: confirm staging at http://127.0.0.1:8200 is up before the gate (.staging/app.log ends with shutdown lines). Second latency sample was not taken (verification.md line 17). The running FastAPI version was not read from the server (inferred from uv.lock, fastapi 0.162.0 at line 56).
+- ⚠️ Row 9: docs/runbooks/ and docs/design/REQ-002/operations.md are absent. Accept only if the release manager agrees a dependency bump with no behaviour change needs none.
+- ⚠️ AC-1 (latest on PyPI): the "latest" claim rests on `uv lock --upgrade-package fastapi --dry-run` reporting no changes (docs/dev/REQ-002/verification.md line 10). That command was not re-run in this check.
+- Non-blocking defects released: none (docs/qa/REQ-002/defects.md line 7).
+- Known warning, not a defect: pytest prints a Starlette deprecation warning about httpx in the TestClient (from the dependency).
+- Uncommitted: `specs/REQ-002.md` is modified in the working tree (the decisions section). It is not code and does not affect the released commit.
+- Production steps: none available. docs/plan/REQ-002/release-plan.md is missing, and production is disabled in sdlc.config.yaml (line 54). The production deployer needs the release plan before anything is deployed to production.
+- Blocked or not run in this check: `gh pr view 2 --json reviewDecision,mergeable,statusCheckRollup,commits` (refused in the previous check; gh is outside this run's allowed commands, so not retried). `sdlc trace REQ-002` (writes docs/rtm; not run). Staging curl probe (not run).

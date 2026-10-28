@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+
+# SQLite expense data (personal financial data, never commit)
+*.db
+*.db-wal
+*.db-shm
+
+# local staging (scripts/staging.sh)
+.staging/
